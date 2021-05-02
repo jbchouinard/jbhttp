@@ -1,0 +1,15 @@
+[package]
+name = "helloserver"
+version = "0.1.0"
+authors = ["Jerome Boisvert-Chouinard <jerome_boisvertchouinard@trendmicro.com>"]
+edition = "2018"
+
+[lib]
+name = "jbhttp"
+path = "src/lib.rs"
+
+[[bin]]
+name = "helloserver"
+path = "src/helloserver.rs"
+
+[dependencies]

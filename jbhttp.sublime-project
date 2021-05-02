@@ -1,0 +1,22 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"settings":
+	{
+		"debug.configurations":
+		[
+			{
+				"cwd": "${workspaceFolder}", 
+				"request": "launch", 
+				"name": "Debug helloserver", 
+				"args": [], 
+				"type": "lldb", 
+				"program": "${workspaceFolder}/target/debug/helloserver"
+			},
+		]
+	}
+}
