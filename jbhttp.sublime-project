@@ -12,10 +12,10 @@
 			{
 				"cwd": "${workspaceFolder}", 
 				"request": "launch", 
-				"name": "Debug helloserver", 
+				"name": "Debug file server", 
 				"args": [], 
 				"type": "lldb", 
-				"program": "${workspaceFolder}/target/debug/helloserver"
+				"program": "${workspaceFolder}/target/debug/examples/fileserver"
 			},
 		]
 	}

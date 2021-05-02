@@ -1,15 +1,25 @@
 [package]
-name = "helloserver"
-version = "0.1.0"
-authors = ["Jerome Boisvert-Chouinard <jerome_boisvertchouinard@trendmicro.com>"]
+name = "jbhttp"
+version = "0.2.0"
+authors = ["Jerome Boisvert-Chouinard <me@jbchouinard.net>"]
 edition = "2018"
 
 [lib]
 name = "jbhttp"
 path = "src/lib.rs"
 
-[[bin]]
-name = "helloserver"
-path = "src/helloserver.rs"
+[features]
+default = ["json"]
+json = ["serde", "serde_json"]
 
 [dependencies]
+log = "0.4"
+serde = { version = "1.0", features = ["derive"], optional = true }
+serde_json = { version = "1.0", optional = true }
+
+[dev-dependencies]
+clap = "2.33"
+lazy_static = "1.4.0"
+rusqlite = "0.25"
+stderrlog = "0.5"
+structopt = { version = "0.3", default-features = false }
