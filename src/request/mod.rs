@@ -14,7 +14,7 @@ pub struct Request<T> {
     pub query: String,
     pub fragment: String,
     pub headers: HashMap<Header, String>,
-    pub body: Option<T>,
+    pub payload: Option<T>,
     pub content_length: usize,
     pub params: Params,
 }
@@ -31,7 +31,7 @@ impl<T> Default for Request<T> {
             headers: vec![("Host".to_string().into(), "localhost".to_string())]
                 .into_iter()
                 .collect(),
-            body: None,
+            payload: None,
             content_length: 0,
             params: Params::new(),
         }
@@ -50,7 +50,7 @@ impl<T> Request<T> {
             query: self.query,
             fragment: self.fragment,
             headers: self.headers,
-            body: None,
+            payload: None,
             content_length: self.content_length,
             params: self.params,
         }

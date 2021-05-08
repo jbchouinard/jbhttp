@@ -46,13 +46,13 @@
 //!         let default_name = "John".to_string();
 //!         let name = req.params.get_any("name").unwrap_or(&default_name);
 //!         let response: Res<Person, Vec<u8>> = Ok(
-//!             Response::new(200).with_body(Person::new(name))
+//!             Response::new(200).with_payload(Person::new(name))
 //!         );
 //!         response
 //!     })
 //!     .serdeserialized()
-//!     .with_media_type::<ApplicationJson>(true)
-//!     .with_media_type::<TextPlain>(false);
+//!     .with_media_type::<ApplicationJson>()
+//!     .with_media_type::<TextPlain>();
 //!
 //!     Router::new()
 //!         .with_route("/person/?name", handle_person)

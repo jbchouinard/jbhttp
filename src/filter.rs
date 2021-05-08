@@ -37,13 +37,13 @@ where
     }
 }
 
-pub struct ResponseFilter<H, F, O: 'static> {
+pub struct OkFilter<H, F, O: 'static> {
     f: F,
     handler: H,
     phantom_o: PhantomData<&'static O>,
 }
 
-impl<H, F, O> ResponseFilter<H, F, O> {
+impl<H, F, O> OkFilter<H, F, O> {
     pub fn new(f: F, handler: H) -> Self {
         Self {
             f,
@@ -53,7 +53,7 @@ impl<H, F, O> ResponseFilter<H, F, O> {
     }
 }
 
-impl<F, FO, H, I, O, E, C> Handler<I, FO, E, C> for ResponseFilter<H, F, O>
+impl<F, FO, H, I, O, E, C> Handler<I, FO, E, C> for OkFilter<H, F, O>
 where
     H: Handler<I, O, E, C>,
     O: 'static + Sync,
@@ -70,13 +70,13 @@ where
     }
 }
 
-pub struct ErrorFilter<H, F, E: 'static> {
+pub struct ErrFilter<H, F, E: 'static> {
     f: F,
     handler: H,
     phantom_e: PhantomData<&'static E>,
 }
 
-impl<H, F, E> ErrorFilter<H, F, E> {
+impl<H, F, E> ErrFilter<H, F, E> {
     pub fn new(f: F, handler: H) -> Self {
         Self {
             f,
@@ -86,7 +86,7 @@ impl<H, F, E> ErrorFilter<H, F, E> {
     }
 }
 
-impl<F, FE, H, I, O, E, C> Handler<I, O, E, C> for ErrorFilter<H, F, FE>
+impl<F, FE, H, I, O, E, C> Handler<I, O, E, C> for ErrFilter<H, F, FE>
 where
     H: Handler<I, O, FE, C>,
     F: Fn(Response<FE>, &mut C) -> Response<E> + Send + Sync,

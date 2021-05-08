@@ -268,7 +268,7 @@ impl<R: Read> RequestParser<R> {
             query,
             fragment,
             headers,
-            body,
+            payload: body,
             content_length,
             params: Params::new(),
         };
@@ -293,7 +293,7 @@ fn parse_params(params_str: &str) -> Vec<(String, String)> {
 }
 
 fn parse_body_params(req: &mut Request<Vec<u8>>) {
-    if let Some(body) = &req.body {
+    if let Some(body) = &req.payload {
         if let Some(content_type) = req.headers.get(&Header::new("content-type")) {
             if content_type == "application/www-form-urlencoded" {
                 if let Ok(body) = std::str::from_utf8(body) {
@@ -374,7 +374,7 @@ mod test {
                 .map(|(h, v)| (Header::new(h), v.to_string()))
                 .collect(),
             content_length: body.map_or(0, |b| b.len()),
-            body: body.map(|b| b.to_vec()),
+            payload: body.map(|b| b.to_vec()),
             params: Params::new(),
         };
         parse_body_params(&mut req);

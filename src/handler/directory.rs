@@ -82,7 +82,7 @@ impl Handler<Vec<u8>, Vec<u8>, Vec<u8>, ()> for DirectoryHandler {
         };
 
         Ok(Response::new(200)
-            .with_body(contents)
+            .with_payload(contents)
             .with_header("Content-Type", content_type))
     }
 }

@@ -99,11 +99,11 @@ struct Route<I, O, E, C> {
 /// use jbhttp::router::Router;
 ///
 /// fn handle_hello(req: RawRequest, _context: &mut ()) -> Res<Vec<u8>, Vec<u8>> {
-///     Ok(Response::new(200).with_body(b"Hello!".to_vec()))
+///     Ok(Response::new(200).with_payload(b"Hello!".to_vec()))
 /// }
 ///
 /// fn handle_bye(req: RawRequest, _context: &mut ()) -> Res<Vec<u8>, Vec<u8>> {
-///     Ok(Response::new(200).with_body(b"Bye!".to_vec()))
+///     Ok(Response::new(200).with_payload(b"Bye!".to_vec()))
 /// }
 ///
 /// let router = Router::new()
@@ -113,12 +113,12 @@ struct Route<I, O, E, C> {
 /// let mut req_hello = Request::default();
 /// req_hello.path = "/hello".to_string();
 /// let response_hello = router.handle(req_hello, &mut ()).unwrap();
-/// # assert_eq!(response_hello.body, Some(b"Hello!".to_vec()));
+/// # assert_eq!(response_hello.payload, Some(b"Hello!".to_vec()));
 ///
 /// let mut req_bye = Request::default();
 /// req_bye.path = "/bye".to_string();
 /// let response_bye = router.handle(req_bye, &mut ()).unwrap();
-/// # assert_eq!(response_bye.body, Some(b"Bye!".to_vec()));
+/// # assert_eq!(response_bye.payload, Some(b"Bye!".to_vec()));
 /// ```
 pub struct Router<I, O, E, C> {
     routes: Vec<Route<I, O, E, C>>,

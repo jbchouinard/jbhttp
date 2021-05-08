@@ -19,7 +19,7 @@ use crate::{
 /// use jbhttp::server::StreamServer;
 ///
 /// fn handle_hello(req: RawRequest, _: &mut ()) -> Res<Vec<u8>, Vec<u8>> {
-///     Ok(Response::new(200).with_body(b"Hello!".to_vec()))
+///     Ok(Response::new(200).with_payload(b"Hello!".to_vec()))
 /// }
 ///
 /// let read_buf = b"GET / HTTP/1.1\r\nHost:localhost\r\n\r\n";
@@ -72,7 +72,7 @@ where
         let mut parser = RequestParser::new(&mut self.stream);
         let response = match parser.parse() {
             Ok(request) => self.handler.handle(request, &mut C::default()),
-            Err(e) => Err(Response::new(400).with_body(format!("{}", e).as_bytes().to_vec())),
+            Err(e) => Err(Response::new(400).with_payload(format!("{}", e).as_bytes().to_vec())),
         };
         let response = match response {
             Ok(response) => response,

@@ -11,7 +11,7 @@ pub mod status;
 ///
 /// let response = RawResponse::new(200)
 ///     .with_header("Content-Type", "text/plain")
-///     .with_body(b"Hello!".to_vec());
+///     .with_payload(b"Hello!".to_vec());
 ///
 /// # assert_eq!(response.content_length(), 6);
 /// ```
@@ -20,7 +20,7 @@ pub struct Response<T> {
     pub status_code: u16,
     pub status: String,
     headers: Vec<(String, String)>,
-    pub body: Option<T>,
+    pub payload: Option<T>,
 }
 
 pub type RawResponse = Response<Vec<u8>>;
@@ -33,7 +33,7 @@ impl<T> Response<T> {
             status_code,
             status: status::default(status_code),
             headers: vec![],
-            body: None,
+            payload: None,
         }
     }
     pub fn headers(&self) -> HashMap<String, String> {
@@ -59,15 +59,15 @@ impl<T> Response<T> {
             status_code: self.status_code,
             status: self.status,
             headers: self.headers,
-            body: None,
+            payload: None,
         }
     }
     pub fn into_raw(self) -> RawResponse {
         self.into_type::<Vec<u8>>()
     }
-    /// Sets response body object.
-    pub fn with_body(mut self, body: T) -> Self {
-        self.body = Some(body);
+    /// Sets response payload.
+    pub fn with_payload(mut self, payload: T) -> Self {
+        self.payload = Some(payload);
         self
     }
 }
@@ -75,7 +75,7 @@ impl<T> Response<T> {
 impl Response<Vec<u8>> {
     /// Get content length.
     pub fn content_length(&self) -> usize {
-        match &self.body {
+        match &self.payload {
             Some(body) => body.len(),
             None => 0,
         }
@@ -98,7 +98,7 @@ impl Response<Vec<u8>> {
         }
 
         bytes.extend(b"\r\n");
-        if let Some(body) = &self.body {
+        if let Some(body) = &self.payload {
             bytes.extend(body);
         }
         bytes
@@ -119,7 +119,7 @@ mod test {
     fn test_response_bytes() {
         let response = RawResponse::new(500)
             .with_header("Connection", "closed")
-            .with_body(b"foobar!".to_vec());
+            .with_payload(b"foobar!".to_vec());
 
         let actual = response.into_bytes();
         let expected = b"HTTP/1.1 500 Internal Server Error\r\nConnection: closed\r\nContent-Length: 7\r\n\r\nfoobar!";

@@ -118,11 +118,11 @@ pub trait Deserialize<T> {
 /// }
 ///
 /// fn get_person(req: Request<Person>, _: &mut ()) -> Res<Person, Vec<u8>> {
-///     Ok(Response::new(200).with_body(Person::new("John Smith")))
+///     Ok(Response::new(200).with_payload(Person::new("John Smith")))
 /// }
 ///
 /// let handler = MediaTypeSerde::new(Box::new(get_person))
-///     .with_media_type::<TextPlain>(true);
+///     .with_media_type::<TextPlain>();
 ///
 /// let mut request = Request::default().with_header("accept", "text/plain");
 /// let response = handler.handle(request, &mut ()).unwrap();
@@ -131,7 +131,7 @@ pub trait Deserialize<T> {
 /// #     response.headers().get("Content-Type"),
 /// #     Some(&"text/plain".to_string())
 /// # );
-/// # assert_eq!(response.body, Some(b"John Smith".to_vec()));
+/// # assert_eq!(response.payload, Some(b"John Smith".to_vec()));
 /// ```
 pub struct MediaTypeSerde<H, I, O>
 where
@@ -153,40 +153,38 @@ where
             handler,
             serializer: MediaTypeSerializer {
                 handler: None,
-                default_serializer: None,
                 serializers: Vec::new(),
                 phantom_i: PhantomData,
             },
             deserializer: MediaTypeDeserializer {
                 handler: None,
-                default_deserializer: None,
                 deserializers: Vec::new(),
                 phantom_o: PhantomData,
             },
         }
     }
-    pub fn with_media_type_serial<M>(mut self, default: bool) -> Self
+    pub fn with_media_type_serial<M>(mut self) -> Self
     where
         M: 'static + MediaType + Send + Sync,
         O: Serialize<M>,
     {
-        self.serializer = self.serializer.with_media_type::<M>(default);
+        self.serializer = self.serializer.with_media_type::<M>();
         self
     }
-    pub fn with_media_type_deserial<M>(mut self, default: bool) -> Self
+    pub fn with_media_type_deserial<M>(mut self) -> Self
     where
         M: 'static + MediaType + Send + Sync + Deserialize<I>,
     {
-        self.deserializer = self.deserializer.with_media_type::<M>(default);
+        self.deserializer = self.deserializer.with_media_type::<M>();
         self
     }
-    pub fn with_media_type<M>(mut self, default: bool) -> Self
+    pub fn with_media_type<M>(mut self) -> Self
     where
         M: 'static + MediaType + Send + Sync + Deserialize<I>,
         O: Serialize<M>,
     {
-        self.serializer = self.serializer.with_media_type::<M>(default);
-        self.deserializer = self.deserializer.with_media_type::<M>(default);
+        self.serializer = self.serializer.with_media_type::<M>();
+        self.deserializer = self.deserializer.with_media_type::<M>();
         self
     }
 }
@@ -235,7 +233,6 @@ where
     I: 'static,
 {
     handler: Option<H>,
-    default_serializer: Option<Box<dyn ResponseSerializer<O>>>,
     // These are all SingleMediaTypeSerializer's, but since they have different
     // types for M, I still need boxdyns
     serializers: Vec<(String, String, Box<dyn ResponseSerializer<O>>)>,
@@ -251,11 +248,10 @@ where
         Self {
             handler: Some(handler),
             serializers: Vec::new(),
-            default_serializer: None,
             phantom_i: PhantomData,
         }
     }
-    pub fn with_media_type<M>(mut self, default: bool) -> Self
+    pub fn with_media_type<M>(mut self) -> Self
     where
         M: 'static + MediaType + Send + Sync,
         O: Serialize<M>,
@@ -263,10 +259,6 @@ where
         let serializer: SingleMediaTypeSerializer<M, O> = SingleMediaTypeSerializer::new();
         self.serializers
             .push((M::mime_type(), M::mime_subtype(), Box::new(serializer)));
-        if default {
-            let serializer: SingleMediaTypeSerializer<M, O> = SingleMediaTypeSerializer::new();
-            self.default_serializer = Some(Box::new(serializer));
-        }
         self
     }
     fn get_serializer<'a>(
@@ -282,7 +274,7 @@ where
                 }
                 None
             }
-            None => self.default_serializer.as_ref(),
+            None => None,
         }
     }
     fn serialize(
@@ -336,7 +328,6 @@ where
     I: 'static,
 {
     handler: Option<H>,
-    default_serializer: Option<Box<dyn ResponseSerializer<E>>>,
     // These are all SingleMediaTypeSerializer's, but since they have different
     // types for M, I still need boxdyns
     serializers: Vec<(String, String, Box<dyn ResponseSerializer<E>>)>,
@@ -352,11 +343,10 @@ where
         Self {
             handler: Some(handler),
             serializers: Vec::new(),
-            default_serializer: None,
             phantom_i: PhantomData,
         }
     }
-    pub fn with_media_type<M>(mut self, default: bool) -> Self
+    pub fn with_media_type<M>(mut self) -> Self
     where
         M: 'static + MediaType + Send + Sync,
         E: Serialize<M>,
@@ -364,10 +354,6 @@ where
         let serializer: SingleMediaTypeSerializer<M, E> = SingleMediaTypeSerializer::new();
         self.serializers
             .push((M::mime_type(), M::mime_subtype(), Box::new(serializer)));
-        if default {
-            let serializer: SingleMediaTypeSerializer<M, E> = SingleMediaTypeSerializer::new();
-            self.default_serializer = Some(Box::new(serializer));
-        }
         self
     }
     fn get_serializer<'a>(
@@ -383,7 +369,7 @@ where
                 }
                 None
             }
-            None => self.default_serializer.as_ref(),
+            None => None,
         }
     }
     fn serialize(
@@ -464,11 +450,11 @@ where
         &self,
         mut response: Response<O>,
     ) -> Result<Response<Vec<u8>>, SerializationError> {
-        let body = std::mem::replace(&mut response.body, None);
+        let body = std::mem::replace(&mut response.payload, None);
         if let Some(body) = body {
             Ok(response
                 .into_raw()
-                .with_body(body.serialize()?)
+                .with_payload(body.serialize()?)
                 .with_header("Content-Type", &M::media_type()))
         } else {
             Ok(response.into_raw())
@@ -485,7 +471,6 @@ where
     O: 'static,
 {
     handler: Option<H>,
-    default_deserializer: Option<Box<dyn RequestDeserializer<I>>>,
     // These are all SingleMediaTypeDeserializer's, but since they have different
     // types for M, I still need boxdyns
     deserializers: Vec<(String, String, Box<dyn RequestDeserializer<I>>)>,
@@ -500,24 +485,18 @@ where
     pub fn new(handler: H) -> Self {
         Self {
             handler: Some(handler),
-            default_deserializer: None,
             deserializers: Vec::new(),
             phantom_o: PhantomData,
         }
     }
 
-    pub fn with_media_type<M>(mut self, default: bool) -> Self
+    pub fn with_media_type<M>(mut self) -> Self
     where
         M: 'static + MediaType + Send + Sync + Deserialize<I>,
     {
         let deserializer: SingleMediaTypeDeserializer<M, I> = SingleMediaTypeDeserializer::new();
         self.deserializers
             .push((M::mime_type(), M::mime_subtype(), Box::new(deserializer)));
-        if default {
-            let deserializer: SingleMediaTypeDeserializer<M, I> =
-                SingleMediaTypeDeserializer::new();
-            self.default_deserializer = Some(Box::new(deserializer));
-        }
         self
     }
     fn get_deserializer<'a>(
@@ -526,10 +505,13 @@ where
     ) -> Option<&Box<dyn RequestDeserializer<I>>> {
         match content_type {
             Some(content_type) => match_media_type(content_type, &self.deserializers),
-            None => self.default_deserializer.as_ref(),
+            None => None,
         }
     }
     fn deserialize(&self, request: Request<Vec<u8>>) -> Result<Request<I>, Error> {
+        if request.payload.is_none() {
+            return Ok(request.into_type());
+        }
         let content_type = request.content_type()?;
         match self.get_deserializer(&content_type) {
             Some(deserializer) => match deserializer.deserialize(request) {
@@ -593,12 +575,12 @@ where
     I: Sync,
 {
     fn deserialize(&self, mut request: Request<Vec<u8>>) -> Result<Request<I>, SerializationError> {
-        let body = std::mem::replace(&mut request.body, None);
+        let body = std::mem::replace(&mut request.payload, None);
         match body {
             Some(body) => {
                 let body = M::deserialize(body)?;
                 let mut request = request.into_type();
-                request.body = Some(body);
+                request.payload = Some(body);
                 Ok(request)
             }
             None => Ok(request.into_type()),
