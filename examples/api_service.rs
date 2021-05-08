@@ -184,24 +184,18 @@ fn app() -> impl Handler<Vec<u8>, Vec<u8>, Vec<u8>, Context> {
     // reaching the add_request_id filter.
     //
     // Here is a request/response flow diagram of the service, with indications
-    // where a request could be pre-empted with error codes.
+    // where a request could be pre-empted.
     //
-    // PersonApi
-    //   🠉   🠋
-    // MediaTypeSerde
-    //   🠉   🠋  -🠋 [400, 405, 415, 500]
-    // Router
-    //   🠉   🠋  -🠋 [404]
-    // Authenticator
-    //   🠉   🠋  -🠋 [401]
-    // ErrorFilter(generate_error)
-    //   🠉   🠋
-    // MediaTypeErrorSerialize
-    //   🠉   🠋
-    // ResFilter(add_request_id)
-    //   🠉   🠋
-    // TcpServer
-    //   🠉   🠋  -🠋 [400, 500]
+    //                           Req   Ok   Err
+    //                   PersonApi ―――>――V――>――V [400, 404, 405]
+    //         MediaTypeSerializer |     V――>――V [406, 500]
+    //       MediaTypeDeserializer ∧―――――>―――――V [400, 415]
+    //                      Router ∧―――――>―――――V [404]
+    //               Authenticator ∧―――――>―――――V [401]
+    // ErrorFilter(generate_error) |     |     V []
+    //    MediaTypeErrorSerializer |     |     V [406, 500]
+    //   ResFilter(add_request_id) |     V     V []
+    //                   TcpServer ∧―――――>―――――V [400, 500]
     //
     // Handlers routed by Router must have matching types,
     // if we had multiple APIs with heterogenous types, each would have
