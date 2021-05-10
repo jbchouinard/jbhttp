@@ -110,7 +110,7 @@ fn app() -> impl Handler<Vec<u8>, Vec<u8>, Vec<u8>, Context> {
         // Media types are represented as Rust types (unit structs).
         // To support application/json for PersonApi, the following must be implemented:
         //  - jbhttp::content::Serialize<ApplicationJson> for Person
-        // - jbhttp::content::Deserialize<Person> for ApplicationJson
+        //  - jbhttp::content::Deserialize<Person> for ApplicationJson
         //
         // With the json crate feature enabled, since our Person struct
         // derives serde::Serialize and serde::Deserialize, ApplicationJson
